@@ -19,30 +19,27 @@ func main() {
 	// Initialise context
 	ctx := context.Background()
 
-	// Initialise Exporter
-	exp, err := datadog.NewExporter()
+	// Initialise trace exporter
+	texp, err := datadog.NewTraceExporter()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer exp.Stop()
+	// Initialise meter exporter
+	mexp, err := datadog.InstallNewPipeline()
+	defer mexp.Stop()
 
 	// Set tracing Provider
 	// TODO: move to constructor
 	provider, err := sdktrace.NewProvider(
-		sdktrace.WithSyncer(exp),
+		sdktrace.WithSyncer(texp),
 		sdktrace.WithConfig(sdktrace.Config{DefaultSampler: sdktrace.AlwaysSample()}))
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// Register trace provider
-	// TODO: move to constructor
 	global.SetTraceProvider(provider)
-
-	// Register metric provider
-	// TODO: move to constructor
-	global.SetMeterProvider(exp)
 
 	tracer := global.Tracer("ex.com/basic")
 	meter := global.Meter("ex.com/basic")

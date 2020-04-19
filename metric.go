@@ -3,23 +3,40 @@ package datadog
 import (
 	"context"
 	"log"
+	"time"
 
-	"go.opentelemetry.io/otel/api/metric"
+	"go.opentelemetry.io/otel/api/global"
 	export "go.opentelemetry.io/otel/sdk/export/metric"
+	"go.opentelemetry.io/otel/sdk/metric/batcher/ungrouped"
+	"go.opentelemetry.io/otel/sdk/metric/controller/push"
+	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 )
 
-// Meter returns a meter with the given name
-func (e *Exporter) Meter(name string) metric.Meter {
-	return e.pusher.Meter(name)
-}
-
-// Stop stops the exporter
-func (e *Exporter) Stop() {
-	if e.pusher == nil {
-		return
+func InstallNewPipeline() (*push.Controller, error) {
+	controller, err := NewExportPipeline()
+	if err != nil {
+		return controller, err
 	}
 
-	e.pusher.Stop()
+	global.SetMeterProvider(controller)
+
+	return controller, err
+}
+
+func NewExportPipeline() (*push.Controller, error) {
+	exp, err := NewMeterExpoter()
+	if err != nil {
+		return nil, err
+	}
+
+	selector := simple.NewWithExactMeasure()
+
+	batcher := ungrouped.New(selector, export.NewDefaultLabelEncoder(), true)
+
+	pusher := push.New(batcher, exp, time.Minute)
+	pusher.Start()
+
+	return pusher, nil
 }
 
 // MeterExporter exports metrics to DataDog
