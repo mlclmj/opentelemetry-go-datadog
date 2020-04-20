@@ -25,6 +25,8 @@ func main() {
 		log.Fatal(err)
 	}
 
+	defer texp.Flush()
+
 	// Initialise meter exporter
 	mexp, err := datadog.InstallNewPipeline()
 	defer mexp.Stop()
