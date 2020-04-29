@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	datadog "go.krak3n.codes/opentelemetry-go-datadog"
+	datadog "github.com/krak3n/opentelemetry-go-datadog"
 	"go.opentelemetry.io/otel/api/global"
 	"go.opentelemetry.io/otel/api/metric"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
