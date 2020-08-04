@@ -7,8 +7,8 @@ import (
 
 	"go.opentelemetry.io/otel/api/global"
 	export "go.opentelemetry.io/otel/sdk/export/metric"
-	"go.opentelemetry.io/otel/sdk/metric/batcher/ungrouped"
 	"go.opentelemetry.io/otel/sdk/metric/controller/push"
+	integrator "go.opentelemetry.io/otel/sdk/metric/integrator/simple"
 	"go.opentelemetry.io/otel/sdk/metric/selector/simple"
 )
 
@@ -31,9 +31,9 @@ func NewExportPipeline() (*push.Controller, error) {
 
 	selector := simple.NewWithExactMeasure()
 
-	batcher := ungrouped.New(selector, export.NewDefaultLabelEncoder(), true)
+	integrator := integrator.New(selector, export.NewDefaultLabelEncoder(), true)
 
-	pusher := push.New(batcher, exp, time.Minute)
+	pusher := push.New(integrator, exp, time.Minute)
 	pusher.Start()
 
 	return pusher, nil
